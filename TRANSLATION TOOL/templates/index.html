@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>♛TRANSLATION GURU - ✧Instant Translator</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>♛TRANSLATION GURU</h1>
+            <p>✧Instant Translation • Beautiful • Fast</p>
+        </header>
+        <div class="translator-box">
+            <form method="POST">
+
+                <!-- Languages at Top -->
+                <div class="language-selectors">
+                    <div class="lang-group">
+                        <label>From</label>
+                        <select name="source_lang" class="lang-select">
+                            <option value="auto">🔍 Auto Detect</option>
+                            {% for code, name in languages.items() %}
+                            <option value="{{ code }}" {{ 'selected' if source_lang==code else '' }}>
+                                {{ name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="swap-icon">
+                        <i class="fas fa-exchange-alt"></i>
+                    </div>
+
+                    <div class="lang-group">
+                        <label>To</label>
+                        <select name="target_lang" class="lang-select">
+                            {% for code, name in languages.items() %}
+                            <option value="{{ code }}" {{ 'selected' if target_lang==code else '' }}>
+                                {{ name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Bigger Input Bubble -->
+                <div class="input-area">
+                    <textarea name="text" rows="7"
+                        placeholder="Type or paste your text here...">{{ original_text }}</textarea>
+                </div>
+
+                <!-- Translate Button -->
+                <button type="submit" class="translate-btn">
+                    <i class="fas fa-language"></i> Translate Now
+                </button>
+
+            </form>
+
+            <!-- Output Bubble - Beautiful & Big -->
+            {% if translated_text %}
+            <div class="result-area">
+                <h3>✅ Translation</h3>
+                <div class="translated-text bubble">
+                    {{ translated_text }}
+                </div>
+
+                <div class="actions">
+                    <button onclick="copyText()" class="action-btn">
+                        <i class="fas fa-copy"></i> Copy
+                    </button>
+                    <button onclick="speakText()" class="action-btn">
+                        <i class="fas fa-volume-up"></i> Speak
+                    </button>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <footer>
+            Powered by Flask & Deep Translator
+        </footer>
+    </div>
+
+    <script>
+        function copyText() {
+            const text = document.querySelector('.translated-text').innerText;
+            navigator.clipboard.writeText(text).then(() => alert('✅ Copied!'));
+        }
+        function speakText() {
+            const text = document.querySelector('.translated-text').innerText;
+            const utterance = new SpeechSynthesisUtterance(text);
+            window.speechSynthesis.speak(utterance);
+        }
+    </script>
+</body>
+
+</html>
