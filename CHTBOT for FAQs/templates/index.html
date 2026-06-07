@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeAlpha FAQ Chatbot</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!--= Header -->
+        <div class="header">
+            <div class="logo">
+                <i class="fas fa-robot"></i>
+                <h1>CodeAlpha FAQ Bot</h1>
+            </div>
+            <button class="clear-btn" onclick="clearChat()">
+                <i class="fas fa-trash"></i> Clear Chat
+            </button>
+        </div>
+
+        <!-- Chat Area -->
+        <div class="chat-container" id="chatContainer">
+            <div class="welcome-message">
+                <i class="fas fa-comments"></i>
+                <h2>Hello! 👋</h2>
+                <p>Ask me anything about Grok or xAI</p>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="input-area">
+            <form id="chatForm" onsubmit="sendMessage(event)">
+                <input type="text" id="userInput" placeholder="Type your question here..." autocomplete="off">
+                <button type="submit" class="send-btn">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const chatContainer = document.getElementById('chatContainer');
+        const userInput = document.getElementById('userInput');
+
+        function addMessage(text, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            
+            if (type === 'bot') {
+                messageDiv.innerHTML = `
+                    <div class="avatar"><i class="fas fa-robot"></i></div>
+                    <div class="message-content">${text}</div>
+                `;
+            } else {
+                messageDiv.innerHTML = `
+                    <div class="message-content">${text}</div>
+                `;
+            }
+            
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message bot typing';
+            typingDiv.id = 'typingIndicator';
+            typingDiv.innerHTML = `
+                <div class="avatar"><i class="fas fa-robot"></i></div>
+                <div class="typing-indicator">
+                    <span></span><span></span><span></span>
+                </div>
+            `;
+            chatContainer.appendChild(typingDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            return typingDiv;
+        }
+
+        async function sendMessage(e) {
+            e.preventDefault();
+            const message = userInput.value.trim();
+            
+            if (!message) return;
+
+            // Add user message
+            addMessage(message, 'user');
+            userInput.value = '';
+
+            // Show typing indicator
+            const typing = showTypingIndicator();
+
+            try {
+                const response = await fetch('/get_response', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: message })
+                });
+                
+                const data = await response.json();
+                
+                // Remove typing indicator
+                typing.remove();
+                
+                // Add bot response
+                addMessage(data.response, 'bot');
+            } catch (error) {
+                typing.remove();
+                addMessage("Sorry, I'm having trouble connecting. Please try again.", 'bot');
+            }
+        }
+
+        function clearChat() {
+            if (confirm("Clear the entire chat history?")) {
+                chatContainer.innerHTML = `
+                    <div class="welcome-message">
+                        <i class="fas fa-comments"></i>
+                        <h2>Hello! 👋</h2>
+                        <p>Ask me anything about Grok or xAI</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Allow sending message with Enter key
+        userInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage(e);
+            }
+        });
+
+        // Focus input on load
+        window.onload = () => userInput.focus();
+    </script>
+</body>
+</html>
